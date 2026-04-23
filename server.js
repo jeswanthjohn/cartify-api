@@ -4,10 +4,11 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 
 // middleware
-const { protect, isAdmin } = require('./middleware/authMiddleware');
+const { protect, admin } = require('./middleware/authMiddleware');
 
 // routes
 const authRoutes = require('./routes/authRoutes');
+const productRoutes = require('./routes/productRoutes');
 
 dotenv.config(); 
 
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use(cors()); 
 
 app.use('/api/auth', authRoutes);
+
+app.use('/api/products', productRoutes);
 
 // test routes
 app.get('/', (req, res) => {
@@ -31,7 +34,7 @@ app.get('/api/protected', protect, (req, res) => {
   });
 });
 
-app.get('/api/admin', protect, isAdmin, (req, res) => {
+app.get('/api/admin', protect, admin, (req, res) => {
   res.json({
     message: 'Welcome Admin',
   });
