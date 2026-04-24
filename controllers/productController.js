@@ -1,6 +1,10 @@
 const Product = require('../models/productModel');
 const asyncHandler = require('express-async-handler');
 
+// 🔧 Helper function (reusable sanitization)
+const sanitizeString = (value) =>
+  typeof value === 'string' ? value.trim() : '';
+
 // GET all products
 const getProducts = asyncHandler(async (req, res) => {
   const products = await Product.find();
@@ -11,18 +15,12 @@ const getProducts = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   const { name, price, description, category, countInStock } = req.body;
 
-  //  basic validation
-  if (!name || !price) {
-    res.status(400);
-    throw new Error('Name and price are required');
-  }
-
   const product = new Product({
-    name,
+    name: sanitizeString(name),
     price,
-    description,
-    category,
-    countInStock,
+    description: sanitizeString(description),
+    category: sanitizeString(category),
+    countInStock: countInStock ?? 0,
   });
 
   const savedProduct = await product.save();
@@ -51,12 +49,26 @@ const updateProduct = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 
-  product.name = req.body.name || product.name;
-  product.price = req.body.price || product.price;
-  product.description = req.body.description || product.description;
-  product.category = req.body.category || product.category;
-  product.countInStock =
-    req.body.countInStock || product.countInStock;
+  //  SAFE + CONSISTENT SANITIZATION
+  if (req.body.name !== undefined) {
+    product.name = sanitizeString(req.body.name) || product.name;
+  }
+
+  if (req.body.price !== undefined) {
+    product.price = req.body.price;
+  }
+
+  if (req.body.description !== undefined) {
+    product.description = sanitizeString(req.body.description);
+  }
+
+  if (req.body.category !== undefined) {
+    product.category = sanitizeString(req.body.category);
+  }
+
+  if (req.body.countInStock !== undefined) {
+    product.countInStock = req.body.countInStock;
+  }
 
   const updatedProduct = await product.save();
 
